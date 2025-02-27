@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSI Readings</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        table {
+            margin: 20px 0;
+        }
+        th, td {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">PSI Readings</h1>
+        <div id="timestamp"></div>
+        <table class="table table-bordered table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Region</th>
+                    <th>O3 Sub Index</th>
+                    <th>PM10 Twenty Four Hourly</th>
+                    <th>PM10 Sub Index</th>
+                    <th>CO Sub Index</th>
+                    <th>PM25 Twenty Four Hourly</th>
+                    <th>PM25 Sub Index</th>
+                    <th>SO2 Sub Index</th>
+                    <th>CO Eight Hour Max</th>
+                    <th>NO2 One Hour Max</th>
+                    <th>SO2 Twenty Four Hourly</th>
+                    <th>PSI Twenty Four Hourly</th>
+                </tr>
+            </thead>
+            <tbody id="psi-data">
+            </tbody>
+        </table>
+    </div>
+    <script>
+        async function fetchPSIData() {
+            const response = await fetch('https://api.data.gov.sg/v1/environment/psi');
+            const data = await response.json();
+            return data;
+        }
+
+        function updateTable(data) {
+            const readings = data.items[0].readings;
+            const timestamp = new Date(data.items[0].update_timestamp).toLocaleString();
+            const regions = Object.keys(data.region_metadata);
+            const tbody = document.getElementById('psi-data');
+
+            regions.forEach(region => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${region}</td>
+                    <td>${readings.o3_sub_index[region]}</td>
+                    <td>${readings.pm10_twenty_four_hourly[region]}</td>
+                    <td>${readings.pm10_sub_index[region]}</td>
+                    <td>${readings.co_sub_index[region]}</td>
+                    <td>${readings.pm25_twenty_four_hourly[region]}</td>
+                    <td>${readings.pm25_sub_index[region]}</td>
+                    <td>${readings.so2_sub_index[region]}</td>
+                    <td>${readings.co_eight_hour_max[region]}</td>
+                    <td>${readings.no2_one_hour_max[region]}</td>
+                    <td>${readings.so2_twenty_four_hourly[region]}</td>
+                    <td>${readings.psi_twenty_four_hourly[region]}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('timestamp').innerHTML = `<strong>Last Updated:</strong> ${timestamp}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const data = await fetchPSIData();
+            updateTable(data);
+        });
+    </script>
+</body>
+</html>
