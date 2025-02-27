@@ -21,7 +21,7 @@
 <body>
     <div class="container">
         <h1 class="text-center">PSI Readings</h1>
-        <div id="timestamp"></div>
+        <div id="timestamp" class="mb-3"></div>
         <table class="table table-bordered table-hover">
             <thead class="thead-dark">
                 <tr>
@@ -43,34 +43,43 @@
             </tbody>
         </table>
     </div>
+
     <script>
+        // Fetch PSI Data from the API
         async function fetchPSIData() {
-            const response = await fetch('https://api.data.gov.sg/v1/environment/psi');
-            const data = await response.json();
-            return data;
+            try {
+                const response = await fetch('https://api.data.gov.sg/v1/environment/psi');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
         }
 
+        // Update the Table with Fetched Data
         function updateTable(data) {
             const readings = data.items[0].readings;
             const timestamp = new Date(data.items[0].update_timestamp).toLocaleString();
-            const regions = Object.keys(data.region_metadata);
+            const regions = data.region_metadata.map(region => region.name); // Correctly get region names
             const tbody = document.getElementById('psi-data');
+
+            tbody.innerHTML = ''; // Clear existing rows to avoid duplication
 
             regions.forEach(region => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${region}</td>
-                    <td>${readings.o3_sub_index[region]}</td>
-                    <td>${readings.pm10_twenty_four_hourly[region]}</td>
-                    <td>${readings.pm10_sub_index[region]}</td>
-                    <td>${readings.co_sub_index[region]}</td>
-                    <td>${readings.pm25_twenty_four_hourly[region]}</td>
-                    <td>${readings.pm25_sub_index[region]}</td>
-                    <td>${readings.so2_sub_index[region]}</td>
-                    <td>${readings.co_eight_hour_max[region]}</td>
-                    <td>${readings.no2_one_hour_max[region]}</td>
-                    <td>${readings.so2_twenty_four_hourly[region]}</td>
-                    <td>${readings.psi_twenty_four_hourly[region]}</td>
+                    <td>${readings.o3_sub_index[region] ?? 'N/A'}</td>
+                    <td>${readings.pm10_twenty_four_hourly[region] ?? 'N/A'}</td>
+                    <td>${readings.pm10_sub_index[region] ?? 'N/A'}</td>
+                    <td>${readings.co_sub_index[region] ?? 'N/A'}</td>
+                    <td>${readings.pm25_twenty_four_hourly[region] ?? 'N/A'}</td>
+                    <td>${readings.pm25_sub_index[region] ?? 'N/A'}</td>
+                    <td>${readings.so2_sub_index[region] ?? 'N/A'}</td>
+                    <td>${readings.co_eight_hour_max[region] ?? 'N/A'}</td>
+                    <td>${readings.no2_one_hour_max[region] ?? 'N/A'}</td>
+                    <td>${readings.so2_twenty_four_hourly[region] ?? 'N/A'}</td>
+                    <td>${readings.psi_twenty_four_hourly[region] ?? 'N/A'}</td>
                 `;
                 tbody.appendChild(row);
             });
@@ -78,9 +87,12 @@
             document.getElementById('timestamp').innerHTML = `<strong>Last Updated:</strong> ${timestamp}`;
         }
 
+        // Initialize on Page Load
         document.addEventListener('DOMContentLoaded', async () => {
             const data = await fetchPSIData();
-            updateTable(data);
+            if (data) {
+                updateTable(data);
+            }
         });
     </script>
 </body>
